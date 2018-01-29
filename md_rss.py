@@ -12,6 +12,8 @@ from wsgiref.simple_server import make_server
 import PyRSS2Gen
 import dateutil.parser
 
+__version__ = '0.1'
+
 class RssApp:
     def __init__(self, directory, link, **meta):
         self.directory = directory
