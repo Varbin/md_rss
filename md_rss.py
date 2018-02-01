@@ -34,7 +34,7 @@ class RssApp:
             url = urljoin(self.meta["link"],
                           os.path.relpath(name, self.directory))
 
-            with open(os.path.join(name)) as fd:
+            with open(os.path.join(name), encoding='utf-8') as fd:
                 data = fd.read(1024)
 
             try:
