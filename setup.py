@@ -20,13 +20,13 @@ except ImportError:
 
 import re
 
-with open('md_rss.py') as malshare_db:
+with open('md_tools/__init__.py') as malshare_db:
     code = malshare_db.read()
 
 metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", code))
 
 setup(
-    name='md_rss',
+    name='md_tools',
     version=metadata.get('version'),
 
     author=metadata.get('author'),
@@ -34,8 +34,8 @@ setup(
     license=metadata.get('license'),
     url='https://github.com',
 
-    py_modules=['md_rss'],
-    install_requires=['python-dateutil', 'PyRSS2Gen'],
+    packages=['md_tools'],
+    install_requires=['python-dateutil', 'PyRSS2Gen', 'bs4', 'markdown'],
 
     classifiers=[
         'Development Status :: 4 - Beta',

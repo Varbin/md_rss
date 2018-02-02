@@ -1,2 +1,4 @@
 python-dateutil
 PyRSS2Gen
+bs4
+markdown
