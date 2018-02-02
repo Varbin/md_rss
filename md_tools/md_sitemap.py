@@ -43,7 +43,7 @@ class SitemapApp:
 
 app = application = SitemapApp(os.environ.get("MAP_INDEXFILE"),
                                os.environ.get("MAP_BASEURL"),
-                               os.environ.get("MAP_ADD").split(","))
+                               os.environ.get("MAP_ADD", "").split(","))
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
