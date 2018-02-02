@@ -35,7 +35,7 @@ setup(
     url='https://github.com',
 
     packages=['md_tools'],
-    install_requires=['python-dateutil', 'PyRSS2Gen', 'bs4', 'markdown'],
+    install_requires=['python-dateutil', 'PyRSS2Gen', 'beautifulsoup4', 'markdown'],
 
     classifiers=[
         'Development Status :: 4 - Beta',
