@@ -5,10 +5,16 @@ from wsgiref.simple_server import make_server
 from markdown import markdown
 from bs4 import BeautifulSoup
 
+def merge_iter(*args):
+    for arg in args:
+        for a in arg:
+            yield a
+
 class SitemapApp:
-    def __init__(self, indexfile, baseurl):
+    def __init__(self, indexfile, baseurl, add=[]):
         self.indexfile = indexfile
         self.baseurl = baseurl
+        self.add = list(map(lambda x: x.strip(), add))
         
     def __call__(self, environ, start_response):
         try:
@@ -25,13 +31,19 @@ class SitemapApp:
         
         yield self.baseurl.encode('UTF-8')
         
-        for link in soup.find_all('a', href=True):
-            abs_url = urljoin(self.baseurl, link['href'])
-            if abs_url.startswith(self.baseurl):
-                yield b'\n'+abs_url.encode('UTF-8')
+        urllist = map(lambda x: x["href"], soup.find_all('a', href=True))
+        
+        yield b'\n'+b'\n'.join(sorted(
+            map(lambda x: x.encode('UTF-8'), 
+            filter(
+                lambda x: x.startswith(self.baseurl), 
+                map(lambda x: urljoin(self.baseurl, x), 
+                    merge_iter(self.add, urllist))))))
+
 
 app = application = SitemapApp(os.environ.get("MAP_INDEXFILE"),
-                               os.environ.get("MAP_BASEURL"))
+                               os.environ.get("MAP_BASEURL"),
+                               os.environ.get("MAP_ADD").split(","))
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
