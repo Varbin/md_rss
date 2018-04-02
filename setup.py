@@ -1,5 +1,5 @@
 """
-Installation script of malshare_db.
+Installation script of md_tools.
 
 Usage (pip):
     pip install .
@@ -24,6 +24,7 @@ with open('md_tools/__init__.py') as malshare_db:
     code = malshare_db.read()
 
 metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", code))
+description = 'Tools for adding dynamic content to static markdown based websites'
 
 setup(
     name='md_tools',
@@ -33,7 +34,7 @@ setup(
     author_email=metadata.get('email'),
     license=metadata.get('license'),
     url='https://github.com',
-
+    description=description,
     packages=['md_tools'],
     install_requires=['python-dateutil', 'PyRSS2Gen', 'beautifulsoup4', 'markdown'],
 
