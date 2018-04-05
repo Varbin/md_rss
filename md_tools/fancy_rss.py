@@ -38,7 +38,7 @@ DEFAULT_TEMPLATE = """\
 
 TEMPLATE_SAFE = """\
 <h2><a href="{link}">{escaped_entry_title}</a></h2>
-<p><time>{date}</time> <i>//</i> <b>{escaped_feed_title}</b></p>
+<p><i>{escaped_author}</i> <time>{date}</time> // <b>{escaped_feed_title}</b></p>
 <iframe srcdoc="{attrescaped_html}" sandbox="allow-forms allow-popups">
 <p>{safe_text}</p>
 </iframe>
@@ -46,7 +46,7 @@ TEMPLATE_SAFE = """\
 
 TEMPLATE_UNSAFE = """\
 <h2><a href="{link}">{escaped_entry_title}</a></h2>
-<p><time>{date}</time> <i>//</i> <b>{escaped_feed_title}</b></p>
+<p><i>{escaped_author}</i> <time>{date}</time> // <b>{escaped_feed_title}</b></p>
 <p>{attrescaped_html}</p>
 """
 
@@ -96,7 +96,8 @@ def multi_replace(text, dictionary):
         text = text.replace(key, value)
     return text
 
-def parse_feeds(feeds=(), cache={}):
+def parse_feeds(feeds=(), cache={}, per_site=3,
+                max_entries=float("inf")):
     parsed_feeds = []
     for feed in feeds:
         cached = cache.get(feed)
@@ -123,11 +124,15 @@ def parse_feeds(feeds=(), cache={}):
 
         cache[feed] = parsed
 
-        for entry in parsed.entries[:3]:
+        for entry in parsed.entries[:per_site]:
             parsed_feeds.append([entry, parsed.feed])
 
-    return sorted(parsed_feeds, key=lambda x: get_date(x[0]),
-                  reverse=True)
+    sorted_entries = sorted(parsed_feeds, key=lambda x: get_date(x[0]),
+                           reverse=True)
+    if max_entries != float("inf"):
+        sorted_entries = sorted_entries[:max_entries]
+
+    return sorted_entries
 
 
 def render_entry(entry, feed, unsafe=False):
@@ -143,12 +148,15 @@ def render_entry(entry, feed, unsafe=False):
         escaped_feed_title=multi_replace(feed.title, safe_html),
         attrescaped_html=multi_replace(entry.summary, safe_attr),
         safe_text=text_from_html("<p>"+entry.summary+"</p>"),
+        escaped_author=multi_replace(
+            getattr(entry, "author", ""), safe_html)
     )
 
 
 class FeedApp:
     cache = {}
-    def __init__(self, feeds, template=None, template_file=None, unsafe=False):
+    def __init__(self, feeds, template=None, template_file=None, unsafe=False,
+                 per_site=3, max_entries=float("inf")):
         if template and template_file:
             raise AttributeError("template or template_file")
         elif template:
@@ -164,9 +172,12 @@ class FeedApp:
         self.feeds = feeds
         self.unsafe = unsafe
 
+        self.per_site, self.max_entries = per_site, max_entries
+
     def __call__(self, environ, start_response):
         html = ""
-        parsed = parse_feeds(self.feeds, self.cache)
+        parsed = parse_feeds(self.feeds, self.cache, self.per_site,
+                                 self.max_entries)
         for entry, feed in parsed:
             html += render_entry(entry, feed, self.unsafe)
 
@@ -182,5 +193,5 @@ class FeedApp:
 
 if __name__ == "__main__":
     server = make_server('', int(os.environ.get('WSGI_PORT', 8003)),
-                                 FeedApp(['https://sbiewald.de/index.rss']))
+                                 FeedApp(['https://rss.golem.de/rss.php?feed=RSS1.0']))
     server.serve_forever()
